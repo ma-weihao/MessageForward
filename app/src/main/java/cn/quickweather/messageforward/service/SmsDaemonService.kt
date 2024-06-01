@@ -84,7 +84,7 @@ class SmsDaemonService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, OPEN_SETTING_ACTIVITY_ID, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_lightbulb)
+            .setSmallIcon(R.drawable.ic_forward_to_inbox)
             .setContentTitle(getString(R.string.title_daemon_service))
             .setContentText(getString(R.string.content_daemon_service))
             .setContentIntent(pendingIntent)
