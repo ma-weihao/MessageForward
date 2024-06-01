@@ -1,5 +1,6 @@
 package cn.quickweather.messageforward.setting
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,13 +58,14 @@ internal class SettingViewModel(
         permissionFlow.value = permissionFlow.value.copy(notificationPermissionEnabled = enabled)
     }
 
-    fun changeSetting(enabled: Boolean) {
+    fun changeSetting(context: Context, enabled: Boolean) {
         viewModelScope.launch {
             settingDataStore.updateSetting(
                 settingDataFlow.first().copy(
                     enabled = enabled,
                 )
             )
+            smsForwardManager.enableForwardService(context, enabled)
         }
     }
 

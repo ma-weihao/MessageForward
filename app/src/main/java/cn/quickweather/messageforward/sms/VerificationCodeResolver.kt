@@ -6,5 +6,8 @@ package cn.quickweather.messageforward.sms
  */
 class VerificationCodeResolver {
 
-
+    fun containsVerificationCode(content: String?): Boolean {
+        if (content.isNullOrBlank()) return false
+        return true
+    }
 }

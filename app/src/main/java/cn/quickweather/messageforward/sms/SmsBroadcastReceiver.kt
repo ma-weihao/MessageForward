@@ -19,16 +19,11 @@ class SmsBroadcastReceiver : BroadcastReceiver(), KoinComponent {
         val pdus = data!!["pdus"] as? Array<Any> ?: return
         val format = data.getString("format")
 
-        // running for loop to read the sms on below line.
-        for (i in pdus.indices) {
-            // getting sms message on below line.
-            val smsMessage: SmsMessage = SmsMessage.createFromPdu(pdus[i] as ByteArray, format)
-            // extracting the sms from sms message and setting it to string on below line.
-            val message = ("Sender : " + smsMessage.displayOriginatingAddress
-                    ) + " Message: " + smsMessage.messageBody
-            // adding the message to listener on below line.
-            logI(TAG, message)
-        }
+        val messageData = pdus.map {
+            SmsMessage.createFromPdu(it as ByteArray, format)
+        }.toMessageData()
+        logI(TAG, "$messageData")
+        manager.onNewSmsReceived(messageData)
     }
 }
 private const val TAG = "SmsBroadcastReceiver"

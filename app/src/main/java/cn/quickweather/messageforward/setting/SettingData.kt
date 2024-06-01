@@ -20,6 +20,9 @@ val SettingData.phoneNumberValid: Boolean
 val String?.phoneNumberValid: Boolean
     get() {
         if (this.isNullOrBlank()) return false
+        if (this == "10000" || this == "10086" || this == "10010") {
+            return true
+        }
         var number = this
         if (this.startsWith("+")) {
             if (!this.startsWith("+86")) {
