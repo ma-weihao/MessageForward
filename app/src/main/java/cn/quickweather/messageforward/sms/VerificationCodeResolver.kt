@@ -8,6 +8,13 @@ class VerificationCodeResolver {
 
     fun containsVerificationCode(content: String?): Boolean {
         if (content.isNullOrBlank()) return false
-        return true
+        val matched = keywords.any {
+            content.contains(it, true)
+        }
+        return matched
+    }
+
+    companion object {
+        private val keywords = listOf("验证码", "动态密码", "verification", "code", "代码", "인증")
     }
 }
