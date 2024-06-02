@@ -11,12 +11,12 @@
     <string name="title_only_forward_verification_code">Only forward messages containing verification code (beta)</string>
 
     <string name="title_daemon_service">MessageForwarder</string>
-    <string name="content_daemon_service">Forward service is on as long as this notification exists</string>
+    <string name="content_daemon_service">Forward service is running as long as this notification exists</string>
 
     <string name="label_status_forward_succeed">Forwarded</string>
 
-    <string name="error_invalid_phone_number">error_invalid_phone_number</string>
-    <string name="error_LackSmsPermission">error_LackSmsPermission</string>
-    <string name="error_LackNotificationPermission">Lack notification permission, forward service will not be available when app in the background.</string>
+    <string name="error_invalid_phone_number">Forward service will not be available until a valid recipient number is provided</string>
+    <string name="error_LackSmsPermission">Forward service will not be available until sms permission is granted</string>
+    <string name="error_LackNotificationPermission">Lack notification permission, forward service will not be available while app in the background.</string>
 
 </resources>
