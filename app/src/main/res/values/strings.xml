@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">MessageForwarder</string>
 
-    <string name="display_app_name">MessageForwarder</string>
+    <string name="display_app_name">Message Forwarder</string>
 
     <string name="title_enable_forward">Enable forward sms</string>
     <string name="description_enable_forward">If enabled, all sms you received will be forwarded to another phone</string>

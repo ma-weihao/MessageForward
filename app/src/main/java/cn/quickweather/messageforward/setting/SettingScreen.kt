@@ -292,25 +292,28 @@ private fun OnlyForwardVerifyCodeContent(
             Modifier
                 .weight(1f)
                 .wrapContentHeight()
-                .padding(end = 4.dp, top = 8.dp)) {
-            Text(
-                text = stringResource(id = R.string.title_only_forward_priority_messages_title),
-                style = MaterialTheme.typography.titleMedium,
-            )
+                .padding(end = 4.dp, top = 8.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_intelligence_56),
-                    modifier = Modifier.size(32.dp).padding(end = 8.dp),
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(end = 8.dp),
                     contentDescription = null,
                 )
                 Text(
-                    text = stringResource(id = R.string.title_only_forward_priority_messages_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp),
+                    text = stringResource(id = R.string.title_only_forward_priority_messages_title),
+                    style = MaterialTheme.typography.titleMedium,
                 )
             }
+            Text(
+                text = stringResource(id = R.string.title_only_forward_priority_messages_desc),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
         Switch(
             checked = checked,
