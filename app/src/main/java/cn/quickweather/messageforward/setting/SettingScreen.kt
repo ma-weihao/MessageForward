@@ -4,6 +4,7 @@ package cn.quickweather.messageforward.setting
 
 import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -22,7 +25,6 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -78,7 +80,7 @@ fun SettingScreen(
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(end = 16.dp)
                         )
-                        Text(text = stringResource(id = R.string.app_name), color = MaterialTheme.colorScheme.onSurface)
+                        Text(text = stringResource(id = R.string.display_app_name), color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             )
@@ -256,14 +258,14 @@ private fun ForwardToNumberContent(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f),
         )
-            Text(
-                text = if (number.isNullOrBlank()) {
-                    stringResource(id = R.string.title_forward_unset)
-                } else {
-                    number
-                },
-                style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
-            )
+        Text(
+            text = if (number.isNullOrBlank()) {
+                stringResource(id = R.string.title_forward_unset)
+            } else {
+                number
+            },
+            style = MaterialTheme.typography.bodyMedium.copy(color = textColor),
+        )
     }
     if (showDialog) {
         NumberInputDialog(
@@ -283,14 +285,33 @@ private fun OnlyForwardVerifyCodeContent(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.wrapContentHeight(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = stringResource(id = R.string.title_only_forward_verification_code),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f),
-        )
+        Column(
+            Modifier
+                .weight(1f)
+                .wrapContentHeight()
+                .padding(end = 4.dp, top = 8.dp)) {
+            Text(
+                text = stringResource(id = R.string.title_only_forward_priority_messages_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_intelligence_56),
+                    modifier = Modifier.size(32.dp).padding(end = 8.dp),
+                    contentDescription = null,
+                )
+                Text(
+                    text = stringResource(id = R.string.title_only_forward_priority_messages_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,

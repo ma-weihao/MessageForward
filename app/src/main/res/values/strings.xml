@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">MessageForwarder</string>
 
+    <string name="display_app_name">MessageForwarder</string>
+
     <string name="title_enable_forward">Enable forward sms</string>
     <string name="description_enable_forward">If enabled, all sms you received will be forwarded to another phone</string>
 
@@ -8,7 +10,9 @@
     <string name="title_forward_unset">Click to set number</string>
     <string name="phone_number_valid">Phone number valid</string>
     <string name="phone_number_invalid">Phone number invalid</string>
-    <string name="title_only_forward_verification_code">Only forward messages containing verification code (beta)</string>
+
+    <string name="title_only_forward_priority_messages_title">Only forward priority messages</string>
+    <string name="title_only_forward_priority_messages_desc">Priority messages will be detected to reduce interruptions.</string>
 
     <string name="title_daemon_service">MessageForwarder</string>
     <string name="content_daemon_service">Forward service is running as long as this notification exists</string>

@@ -10,7 +10,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import cn.quickweather.messageforward.setting.SettingScreen
 import cn.quickweather.messageforward.ui.theme.MessageForwardTheme
 
