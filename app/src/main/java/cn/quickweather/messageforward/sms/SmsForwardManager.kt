@@ -3,7 +3,6 @@ package cn.quickweather.messageforward.sms
 import android.content.Context
 import android.os.Build
 import android.telephony.SmsManager
-import android.telephony.SmsMessage
 import android.util.Log
 import cn.quickweather.android.common.util.applicationContext
 import cn.quickweather.android.common.util.globalMainScope
@@ -22,7 +21,7 @@ import kotlinx.coroutines.launch
  */
 class SmsForwardManager(
     settingDataStore: SettingDataStore,
-    private val verificationCodeResolver: VerificationCodeResolver,
+    private val verificationCodeResolver: MsgImportanceResolver,
 ) {
 
     val settingData = settingDataStore.settingData
@@ -52,7 +51,7 @@ class SmsForwardManager(
         if (!data.enabled || !data.phoneNumberValid) {
             return
         }
-        if (data.onlyVerificationCode && !verificationCodeResolver.containsVerificationCode(sms.msgBody)) {
+        if (data.onlyVerificationCode && !verificationCodeResolver.isMessageImportant(sms.msgBody)) {
             return
         }
         Log.i(TAG, "forwardMessage: send to ${data.smsToNumber}")
