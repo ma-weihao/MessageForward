@@ -221,7 +221,7 @@ private fun ColumnScope.MainSettingItems(
                 onPhoneNumberChanged = onPhoneNumberChanged,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-            OnlyForwardVerifyCodeContent(
+            OnlyForwardPriorityContent(
                 checked = settingData.onlyVerificationCode,
                 onCheckedChange = onFilterSwitchChanged,
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -279,7 +279,7 @@ private fun ForwardToNumberContent(
 }
 
 @Composable
-private fun OnlyForwardVerifyCodeContent(
+private fun OnlyForwardPriorityContent(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -415,7 +415,7 @@ private fun SettingScreenPreview() {
                     {},
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                OnlyForwardVerifyCodeContent(false, {}, modifier = Modifier.padding(vertical = 8.dp))
+                OnlyForwardPriorityContent(false, {}, modifier = Modifier.padding(vertical = 8.dp))
             }
         }
     }
