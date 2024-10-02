@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -46,6 +48,25 @@ class SmsDaemonService : Service() {
                 }
             }
         }
+        registerLowBattery()
+    }
+
+    private val batteryStatusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val level = intent.getIntExtra("level", -1)
+            if (level == 2) {
+                handleLowBattery()
+            }
+        }
+    }
+
+    private fun handleLowBattery() {
+        // TODO: handle low battery
+    }
+
+    private fun registerLowBattery() {
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryStatusReceiver, filter)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -61,6 +82,7 @@ class SmsDaemonService : Service() {
         finishing = false
         cancelNotification()
         scope.coroutineContext.cancel()
+        unregisterReceiver(batteryStatusReceiver)
         super.onDestroy()
     }
 

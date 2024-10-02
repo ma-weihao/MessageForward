@@ -1,6 +1,6 @@
 package cn.quickweather.messageforward.setting
 
-import android.R.attr.phoneNumber
+import android.app.Notification
 import kotlinx.serialization.Serializable
 import java.util.regex.Pattern
 
@@ -10,6 +10,8 @@ data class SettingData(
     val enabled: Boolean = false,
     val smsToNumber: String? = null,
     val onlyVerificationCode: Boolean = false,
+    val markAsRead: Boolean = false,
+    val sendBatteryNotification: Boolean = false,
 )
 
 private val CHINA_PHONE_NUMBER_PATTERN = Pattern.compile("^1[3-9]\\d{9}$")

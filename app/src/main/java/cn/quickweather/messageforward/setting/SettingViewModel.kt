@@ -5,6 +5,8 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.quickweather.messageforward.R
+import cn.quickweather.messageforward.history.ForwardHistoryDataStore
+import cn.quickweather.messageforward.history.HistoryData
 import cn.quickweather.messageforward.sms.SmsForwardManager
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -22,6 +24,7 @@ import kotlinx.coroutines.launch
 internal class SettingViewModel(
     private val smsForwardManager: SmsForwardManager,
     private val settingDataStore: SettingDataStore,
+    private val historyDataStore: ForwardHistoryDataStore,
 ): ViewModel() {
 
     private val settingDataFlow: Flow<SettingData> = settingDataStore.settingData
@@ -30,17 +33,21 @@ internal class SettingViewModel(
         notificationPermissionEnabled = true
     ))
 
-    private val _shownSettingDataFlow: Flow<ShownSettingData> = combine(settingDataFlow, permissionFlow) { settingData, permission ->
+    private val _shownSettingDataFlow: Flow<ShownSettingData> = combine(
+        settingDataFlow,
+        permissionFlow,
+        historyDataStore.historyData,
+        ) { settingData, permission, historyList ->
         if (!settingData.enabled) {
             ShownSettingData(settingData)
         } else if (!settingData.phoneNumberValid) {
-            ShownSettingData(settingData, ShownError.InvalidPhoneNumber)
+            ShownSettingData(settingData, ShownError.InvalidPhoneNumber, historyList)
         } else if (!permission.smsPermissionEnabled) {
-            ShownSettingData(settingData, ShownError.LackSmsPermission)
+            ShownSettingData(settingData, ShownError.LackSmsPermission, historyList)
         } else if (!permission.notificationPermissionEnabled) {
-            ShownSettingData(settingData, ShownError.LackNotificationPermission)
+            ShownSettingData(settingData, ShownError.LackNotificationPermission, historyList)
         } else {
-            ShownSettingData(settingData)
+            ShownSettingData(settingData, history = historyList)
         }
     }
 
@@ -89,6 +96,26 @@ internal class SettingViewModel(
         }
     }
 
+    fun changeMarkAsRead(enabled: Boolean) {
+        viewModelScope.launch {
+            settingDataStore.updateSetting(
+                settingDataFlow.first().copy(
+                    markAsRead = enabled,
+                )
+            )
+        }
+    }
+
+    fun changeBatteryNotification(enabled: Boolean) {
+        viewModelScope.launch {
+            settingDataStore.updateSetting(
+                settingDataFlow.first().copy(
+                    sendBatteryNotification = enabled,
+                )
+            )
+        }
+    }
+
 }
 
 private const val TAG = "SettingViewModel"
@@ -96,6 +123,7 @@ private const val TAG = "SettingViewModel"
 internal data class ShownSettingData(
     val settingData: SettingData,
     val shownError: ShownError? = null,
+    val history: List<HistoryData> = emptyList(),
 )
 
 private data class PermissionState(

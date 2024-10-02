@@ -5,24 +5,24 @@ package cn.quickweather.messageforward.setting
 import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -38,15 +38,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cn.quickweather.android.common.util.showShortToast
 import cn.quickweather.messageforward.R
+import cn.quickweather.messageforward.history.HistoryData
 import cn.quickweather.messageforward.sms.ForwardStatus
+import cn.quickweather.messageforward.sms.MessageData
 import cn.quickweather.messageforward.ui.theme.ContentCard
 import cn.quickweather.messageforward.ui.theme.ErrorCard
 import cn.quickweather.messageforward.ui.theme.MessageForwardTheme
@@ -57,6 +63,9 @@ import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import org.koin.androidx.compose.koinViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Created by maweihao on 5/20/24
@@ -87,7 +96,7 @@ fun SettingScreen(
         },
         modifier = modifier.fillMaxSize(),
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Box(modifier = Modifier.padding(top = padding.calculateTopPadding())) {
             val shownSettingData = viewModel.shownSettingDataFlow.collectAsStateWithLifecycle().value
             val smsPermissionState = rememberMultiplePermissionsState(
                 listOf(Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS)
@@ -106,6 +115,7 @@ fun SettingScreen(
             val context = LocalContext.current
             SettingContent(
                 shownSettingData = shownSettingData,
+                history = shownSettingData.history,
                 onSwitchChanged = { on ->
                     if (on) {
                         requestPermission(smsPermissionState, notificationPermissionState)
@@ -119,7 +129,14 @@ fun SettingScreen(
                 },
                 onFilterSwitchChanged = {
                     viewModel.changeOnlyForwardVerificationCode(it)
-                }
+                },
+                onMarkAsReadChanged = {
+                    viewModel.changeMarkAsRead(it)
+                },
+                onBatteryNotificationChanged = {
+                    viewModel.changeBatteryNotification(it)
+                },
+                bottomPadding = padding.calculateBottomPadding(),
             )
         }
     }
@@ -128,39 +145,57 @@ fun SettingScreen(
 @Composable
 private fun SettingContent(
     shownSettingData: ShownSettingData,
+    history: List<HistoryData>,
     onSwitchChanged: (Boolean) -> Unit,
     onPhoneNumberChanged: (String?) -> Unit,
     onFilterSwitchChanged: (Boolean) -> Unit,
+    onMarkAsReadChanged: (Boolean) -> Unit,
+    onBatteryNotificationChanged: (Boolean) -> Unit,
+    bottomPadding: Dp,
     modifier: Modifier = Modifier,
 ) {
     val settingData = shownSettingData.settingData
     val shownError = shownSettingData.shownError
-    val scrollState = rememberScrollState()
-    Column(
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = modifier
-            .scrollable(scrollState, orientation = Orientation.Vertical)
+            .fillMaxSize()
             .padding(top = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        item {
+            AnimatedVisibility(visible = shownError != null) {
+                ErrorCard(
+                    message = shownError?.errString?.let {
+                        stringResource(id = it)
+                    } ?: ""
+                )
+            }
+        }
 
-        AnimatedVisibility(visible = shownError != null) {
-            ErrorCard(
-                message = shownError?.errString?.let {
-                    stringResource(id = it)
-                } ?: ""
+        item {
+            MainSwitch(
+                checked = settingData.enabled,
+                onCheckedChange = onSwitchChanged,
             )
         }
 
-        MainSwitch(
-            checked = settingData.enabled,
-            onCheckedChange = onSwitchChanged,
-        )
+        item {
+            AnimatedVisibility(visible = settingData.enabled) {
+                MainSettingItems(
+                    settingData = settingData,
+                    onPhoneNumberChanged = onPhoneNumberChanged,
+                    onFilterSwitchChanged = onFilterSwitchChanged,
+                    onMarkAsReadChanged = onMarkAsReadChanged,
+                    onBatteryNotificationChanged = onBatteryNotificationChanged,
+                )
+            }
+        }
 
-        MainSettingItems(
-            settingData = settingData,
-            onPhoneNumberChanged = onPhoneNumberChanged,
-            onFilterSwitchChanged = onFilterSwitchChanged,
-        )
+        if (settingData.enabled) {
+            forwardHistoryList(
+                history = history
+            )
+        }
     }
 
 }
@@ -182,7 +217,9 @@ private fun MainSwitch(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    ContentCard {
+    ContentCard(
+        outerPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -209,27 +246,44 @@ private fun MainSwitch(
 }
 
 @Composable
-private fun ColumnScope.MainSettingItems(
+private fun MainSettingItems(
     settingData: SettingData,
     onPhoneNumberChanged: (String?) -> Unit,
     onFilterSwitchChanged: (Boolean) -> Unit,
+    onMarkAsReadChanged: (Boolean) -> Unit,
+    onBatteryNotificationChanged: (Boolean) -> Unit,
 ) {
-    AnimatedVisibility(visible = settingData.enabled) {
-        ContentCard {
-            ForwardToNumberContent(
-                number = settingData.smsToNumber,
-                onPhoneNumberChanged = onPhoneNumberChanged,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-            OnlyForwardPriorityContent(
-                checked = settingData.onlyVerificationCode,
-                onCheckedChange = onFilterSwitchChanged,
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-        }
+    ContentCard(
+        outerPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Text(
+            text = stringResource(
+                id = R.string.title_setting
+            ),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        ForwardToNumberContent(
+            number = settingData.smsToNumber,
+            onPhoneNumberChanged = onPhoneNumberChanged,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        MarkAsReadContent(
+            checked = settingData.markAsRead,
+            onCheckedChange = onMarkAsReadChanged,
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
+        BatteryNotificationContent(
+            checked = settingData.sendBatteryNotification,
+            onCheckedChange = onBatteryNotificationChanged,
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
+        OnlyForwardPriorityContent(
+            checked = settingData.onlyVerificationCode,
+            onCheckedChange = onFilterSwitchChanged,
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
     }
 }
-
 
 @Composable
 private fun ForwardToNumberContent(
@@ -253,6 +307,14 @@ private fun ForwardToNumberContent(
             .padding(top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_arrow_outward),
+            modifier = Modifier
+                .size(32.dp)
+                .padding(end = 8.dp),
+            tint = MaterialTheme.colorScheme.primary,
+            contentDescription = null,
+        )
         Text(
             text = stringResource(id = R.string.title_forward_to_number),
             style = MaterialTheme.typography.titleMedium,
@@ -274,6 +336,43 @@ private fun ForwardToNumberContent(
             dismissDialog = {
                 showDialog = false
             }
+        )
+    }
+}
+
+@Composable
+private fun MarkAsReadContent(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.wrapContentHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .wrapContentHeight()
+                .padding(end = 4.dp, top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_mark_email_read_24),
+                modifier = Modifier
+                    .size(32.dp)
+                    .padding(end = 8.dp),
+                tint = MaterialTheme.colorScheme.primary,
+                contentDescription = null,
+            )
+            Text(
+                text = stringResource(id = R.string.title_mark_as_read_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
         )
     }
 }
@@ -323,20 +422,171 @@ private fun OnlyForwardPriorityContent(
 }
 
 @Composable
-private fun ForwardHistoryList(
-
+private fun BatteryNotificationContent(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
+    Row(
+        modifier = modifier.wrapContentHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            Modifier
+                .weight(1f)
+                .wrapContentHeight()
+                .padding(end = 4.dp, top = 8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_battery_1_bar_24),
+                    modifier = Modifier
+                        .size(32.dp)
+                        .padding(end = 8.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                    contentDescription = null,
+                )
+                Text(
+                    text = stringResource(id = R.string.send_dead_notification_title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            Text(
+                text = stringResource(id = R.string.send_dead_notification_desc),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+        )
+    }
+}
 
+private fun LazyListScope.forwardHistoryList(
+    history: List<HistoryData>,
+) {
+    item {
+        if (history.isNotEmpty()) {
+            ContentCard(
+                bottomCornerSize = 0.dp,
+                outerPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        id = R.string.title_forward_history
+                    ),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        } else {
+            ContentCard(
+                outerPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                innerPadding = PaddingValues(vertical = 16.dp, horizontal = 12.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.title_no_forward_history),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        }
+    }
+
+    if (history.isNotEmpty()) {
+        items(history.size, key = {
+            history[it].id
+        }) { index ->
+            ForwardHistoryItem(
+                time = history[index].message.receivedTime,
+                status = ForwardStatus.parse(history[index].status),
+                from = history[index].message.originatingAddress ?: "",
+                content = history[index].message.msgBody ?: "",
+                withBottomDivider = index < history.size - 1,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                    .padding(8.dp)
+            )
+        }
+    }
+
+    item {
+        ContentCard(
+            topCornerSize = 0.dp,
+            innerPadding = PaddingValues(bottom = 16.dp),
+            outerPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 4.dp),
+        ) {
+        }
+    }
 }
 
 @Composable
 private fun ForwardHistoryItem(
-    content: String,
+    time: Long,
+    status: ForwardStatus,
     from: String,
-    forwardStatus: ForwardStatus,
+    content: String,
+    withBottomDivider: Boolean = true,
+    modifier: Modifier = Modifier,
 ) {
-    Row {
-
+    val shownTime = remember(key1 = time) {
+        val date = Date(time)
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(date)
+        if (today == dateStr) {
+            "Today " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
+        } else {
+            SimpleDateFormat("MM-dd HH:mm", Locale.getDefault()).format(date)
+        }
+    }
+    Column(
+        modifier = modifier,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = from,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(end = 12.dp, start = 4.dp),
+                )
+                Text(
+                    text = shownTime,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Icon(
+                painter = painterResource(id = status.icon),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(24.dp)
+                    .clickable {
+                        showShortToast(status.label)
+                    },
+            )
+        }
+        Text(
+            text = content,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 4.dp),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (withBottomDivider) {
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+            )
+        }
     }
 }
 
@@ -415,7 +665,14 @@ private fun SettingScreenPreview() {
                     {},
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
+                MarkAsReadContent(false, {}, modifier = Modifier.padding(vertical = 8.dp))
+                BatteryNotificationContent(false, {}, modifier = Modifier.padding(vertical = 8.dp))
                 OnlyForwardPriorityContent(false, {}, modifier = Modifier.padding(vertical = 8.dp))
+            }
+            LazyColumn {
+                forwardHistoryList(
+                    history = previewHistoryList
+                )
             }
         }
     }
@@ -430,3 +687,37 @@ private fun NumberInputDialogPreview() {
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun ForwardHistoryItemPreview() {
+    MessageForwardTheme {
+        ForwardHistoryItem(
+            1632192000000,
+            ForwardStatus.ForwardSucceed,
+            "15952032659",
+            "亲爱的居民朋友：2024年9月21日是我国第24个全民国防教育日，也是上海市第17个全市防空警报试鸣日。您可通过高德、百度地图搜索“民防工程”，查询身边的民防工程；打开微信小程序“民防在我身边”，了解浦东新区范围内的民防教育基地、应急避难场所和民防工程。【浦东新区国动办】",
+        )
+    }
+}
+
+private val previewHistoryList = listOf(
+    HistoryData(
+        MessageData(
+            "15952033659",
+            "亲爱的居民朋友：2024年9月21日是我国第24个全民国防教育日，也是上海市第17个全市防空警报试鸣日。您可通过高德、百度地图搜索“民防工程”，查询身边的民防工程；打开微信小程序“民防在我身边”，了解浦东新区范围内的民防教育基地、应急避难场所和民防工程。【浦东新区国动办】",
+            1632192000000L,
+            id = "1",
+        ),
+        ForwardStatus.ForwardSucceed.ordinal
+    ),
+//    HistoryData(
+//        MessageData(
+//            "15952033659",
+//            "【充值提醒】尊敬的客户，您已成功充值30.00元，查询余额请登录中国电信APP http://a.189.cn/JJLkBW 或关注“吉林电信”微信公众号查询 。邀您领取1-100元随机话费福利，限量福利先到先得，点击 http://a.189.cn/JJLkBW。【好服务 更随心】中国电信",
+//            1632192000000L,
+//            id = "2",
+//        ),
+//        ForwardStatus.ForwardFailedDueToSms.ordinal
+//    ),
+)

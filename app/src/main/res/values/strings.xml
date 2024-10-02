@@ -3,7 +3,7 @@
 
     <string name="display_app_name">Message Forwarder</string>
 
-    <string name="title_enable_forward">Enable forward sms</string>
+    <string name="title_enable_forward">Enable Forward SMS</string>
     <string name="description_enable_forward">If enabled, all sms you received will be forwarded to another phone</string>
 
     <string name="title_forward_to_number">Phone number of recipient</string>
@@ -18,9 +18,23 @@
     <string name="content_daemon_service">Forward service is running as long as this notification exists</string>
 
     <string name="label_status_forward_succeed">Forwarded</string>
+    <string name="label_status_forward_failed">Forward Failed</string>
+    <string name="label_status_unimportant">Determined as unimportant</string>
+    <string name="label_status_detecting_priority">Detecting</string>
+    <string name="label_status_pending">Pending</string>
 
     <string name="error_invalid_phone_number">Forward service will not be available until a valid recipient number is provided</string>
     <string name="error_LackSmsPermission">Forward service will not be available until sms permission is granted</string>
     <string name="error_LackNotificationPermission">Lack notification permission, forward service will not be available while app in the background.</string>
 
+    <string name="send_dead_notification_title">Battery notification</string>
+    <string name="send_dead_notification_desc">Send a message when battery is nearly dead.</string>
+    <string name="send_dead_notification_msg_content">Your phone battery is nearly dead, Message Forwarder will be disabled soon.</string>
+
+    <string name="title_mark_as_read_title">Mark forwarded as read</string>
+
+    <string name="title_forward_history">Forward History</string>
+    <string name="title_no_forward_history">No Forwarded Messages</string>
+
+    <string name="title_setting">Forward Settings</string>
 </resources>
