@@ -29,7 +29,7 @@
 
     <string name="send_dead_notification_title">Battery notification</string>
     <string name="send_dead_notification_desc">Send a message when battery is nearly dead.</string>
-    <string name="send_dead_notification_msg_content">Your phone battery is nearly dead, Message Forwarder will be disabled soon.</string>
+    <string name="send_dead_notification_msg_content">Your phone battery is nearly dead (%1$s\%%). Message Forwarder will not be working soon.</string>
 
     <string name="title_mark_as_read_title">Mark forwarded as read</string>
 

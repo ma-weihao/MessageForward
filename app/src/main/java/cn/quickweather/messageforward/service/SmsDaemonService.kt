@@ -9,10 +9,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import cn.quickweather.android.common.util.logD
 import cn.quickweather.android.common.util.logI
 import cn.quickweather.messageforward.MainActivity
 import cn.quickweather.messageforward.R
@@ -27,6 +29,7 @@ import org.koin.android.ext.android.inject
 class SmsDaemonService : Service() {
 
     private val smsForwardManager: SmsForwardManager by inject()
+    private val lowBatteryHandler: LowBatteryHandler by inject()
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun onBind(intent: Intent): IBinder? {
@@ -54,14 +57,19 @@ class SmsDaemonService : Service() {
     private val batteryStatusReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val level = intent.getIntExtra("level", -1)
-            if (level == 2) {
-                handleLowBattery()
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            val isCharging =
+                status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
+            if (!isCharging && lowBatteryHandler.isLowBattery(level)) {
+                handleLowBattery(level)
             }
         }
     }
 
-    private fun handleLowBattery() {
-        // TODO: handle low battery
+    private fun handleLowBattery(level: Int) {
+        scope.launch {
+            lowBatteryHandler.handleLowBattery(level)
+        }
     }
 
     private fun registerLowBattery() {
@@ -129,6 +137,7 @@ class SmsDaemonService : Service() {
         private const val OPEN_SETTING_ACTIVITY_ID = 200
 
         private const val NOTIFICATION_ID = 300
+
 
         private var running = false
         private var finishing = false

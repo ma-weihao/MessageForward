@@ -15,3 +15,4 @@
 - [ ] Report misdetected priority SMS.
 - [ ] Support phone number with country code.
 - [ ] Mark forwarded as Read.
+- [ ] Reply **STOP** to disable forwarder.

@@ -17,7 +17,22 @@ data class MessageData(
     val splitPartsSize: Int = 0,
     val id: String = "",
     val idInSmsDB: Long = -1,
-)
+    val messageOrder: Int = MessageType.SMS.ordinal,
+) {
+    val isSms: Boolean
+        get() = messageOrder == MessageType.SMS.ordinal
+}
+
+enum class MessageType {
+    // don't change the order
+    SMS,
+    LOW_BATTERY,
+    ;
+
+    companion object {
+        fun fromInt(value: Int) = entries.first { it.ordinal == value }
+    }
+}
 
 fun List<SmsMessage>.toMessageData(): MessageData {
     return MessageData(

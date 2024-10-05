@@ -54,7 +54,7 @@ class SmsForwardManager(
         if (!data.enabled || !data.phoneNumberValid) {
             return
         }
-        if (data.onlyVerificationCode) {
+        if (data.onlyVerificationCode && sms.isSms) {
             historyDataStore.updateHistory(history.copy(status = ForwardStatus.DetectingPriority.ordinal))
             val important = verificationCodeResolver.isMessageImportant(sms.msgBody)
             if (!important) {

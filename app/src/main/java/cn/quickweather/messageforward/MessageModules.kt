@@ -8,7 +8,9 @@ import cn.quickweather.messageforward.history.ForwardHistoryDataStore
 import cn.quickweather.messageforward.sms.MsgImportanceResolver
 import cn.quickweather.messageforward.setting.SettingDataStore
 import cn.quickweather.messageforward.setting.SettingViewModel
+import cn.quickweather.messageforward.service.LowBatteryHandler
 import org.koin.androidx.viewmodel.dsl.viewModelOf
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -29,4 +31,5 @@ val messageModules = module {
     singleOf(::ForwardHistoryDataStore)
     viewModelOf(::SettingViewModel)
     singleOf<MessageToolsApi>(::MessageToolsApiImpl)
+    factoryOf(::LowBatteryHandler)
 }
