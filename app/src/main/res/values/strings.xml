@@ -4,7 +4,7 @@
     <string name="display_app_name">Message Forwarder</string>
 
     <string name="title_enable_forward">Enable Forward SMS</string>
-    <string name="description_enable_forward">If enabled, all sms you received will be forwarded to another phone</string>
+    <string name="description_enable_forward">If enabled, all sms you received will be forwarded to another phone.</string>
 
     <string name="title_forward_to_number">Phone number of recipient</string>
     <string name="title_forward_unset">Click to set number</string>
@@ -13,6 +13,11 @@
 
     <string name="title_only_forward_priority_messages_title">Only forward priority messages</string>
     <string name="title_only_forward_priority_messages_desc">Priority messages will be detected to reduce interruptions.</string>
+
+    <string name="warning_title_only_forward_priority_messages">Privacy Consent</string>
+    <string name="warning_content_only_forward_priority_messages">Message content will be upload to determine priority. Your message will not be stored in server.</string>
+    <string name="warning_positive_button_only_forward_priority_messages">I understand</string>
+    <string name="warning_negative_button_only_forward_priority_messages">Cancel</string>
 
     <string name="title_daemon_service">MessageForwarder</string>
     <string name="content_daemon_service">Forward service is running as long as this notification exists</string>

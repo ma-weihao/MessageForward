@@ -27,6 +27,7 @@ internal class SettingViewModel(
     private val historyDataStore: ForwardHistoryDataStore,
 ): ViewModel() {
 
+    private val showConsentDialog = MutableStateFlow(false)
     private val settingDataFlow: Flow<SettingData> = settingDataStore.settingData
     private val permissionFlow = MutableStateFlow(PermissionState(
         smsPermissionEnabled = true,
@@ -37,17 +38,33 @@ internal class SettingViewModel(
         settingDataFlow,
         permissionFlow,
         historyDataStore.historyData,
-        ) { settingData, permission, historyList ->
+        showConsentDialog,
+        ) { settingData, permission, historyList, consent  ->
         if (!settingData.enabled) {
             ShownSettingData(settingData)
         } else if (!settingData.phoneNumberValid) {
-            ShownSettingData(settingData, ShownError.InvalidPhoneNumber, historyList)
+            ShownSettingData(
+                settingData,
+                ShownError.InvalidPhoneNumber,
+                historyList,
+                showConsentDialog = consent
+            )
         } else if (!permission.smsPermissionEnabled) {
-            ShownSettingData(settingData, ShownError.LackSmsPermission, historyList)
+            ShownSettingData(
+                settingData,
+                ShownError.LackSmsPermission,
+                historyList,
+                showConsentDialog = consent
+            )
         } else if (!permission.notificationPermissionEnabled) {
-            ShownSettingData(settingData, ShownError.LackNotificationPermission, historyList)
+            ShownSettingData(
+                settingData,
+                ShownError.LackNotificationPermission,
+                historyList,
+                showConsentDialog = consent
+            )
         } else {
-            ShownSettingData(settingData, history = historyList)
+            ShownSettingData(settingData, history = historyList, showConsentDialog = consent)
         }
     }
 
@@ -88,21 +105,23 @@ internal class SettingViewModel(
 
     fun changeOnlyForwardVerificationCode(enabled: Boolean) {
         viewModelScope.launch {
-            settingDataStore.updateSetting(
-                settingDataFlow.first().copy(
-                    onlyVerificationCode = enabled,
+            if (enabled) {
+                if (hasAgreedConsent) {
+                    settingDataStore.updateSetting(
+                        settingDataFlow.first().copy(
+                            onlyVerificationCode = true,
+                        )
+                    )
+                } else {
+                    showConsentDialog.value = true
+                }
+            } else {
+                settingDataStore.updateSetting(
+                    settingDataFlow.first().copy(
+                        onlyVerificationCode = false,
+                    )
                 )
-            )
-        }
-    }
-
-    fun changeMarkAsRead(enabled: Boolean) {
-        viewModelScope.launch {
-            settingDataStore.updateSetting(
-                settingDataFlow.first().copy(
-                    markAsRead = enabled,
-                )
-            )
+            }
         }
     }
 
@@ -116,14 +135,32 @@ internal class SettingViewModel(
             )
         }
     }
+
+    fun onAgreeConsent() {
+        showConsentDialog.value = false
+        hasAgreedConsent = true
+        viewModelScope.launch {
+            settingDataStore.updateSetting(
+                settingDataFlow.first().copy(
+                    onlyVerificationCode = true,
+                )
+            )
+        }
+    }
+
+    fun onDisagreeConsent() {
+        showConsentDialog.value = false
+    }
 }
 
+private var hasAgreedConsent = false
 private const val TAG = "SettingViewModel"
 
 internal data class ShownSettingData(
     val settingData: SettingData,
     val shownError: ShownError? = null,
     val history: List<HistoryData> = emptyList(),
+    val showConsentDialog: Boolean = false,
 )
 
 private data class PermissionState(

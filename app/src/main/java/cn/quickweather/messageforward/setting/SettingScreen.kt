@@ -138,6 +138,16 @@ fun SettingScreen(
                 },
                 bottomPadding = padding.calculateBottomPadding(),
             )
+            if (shownSettingData.showConsentDialog) {
+                ConsentDialog(
+                    onConfirm = {
+                        viewModel.onAgreeConsent()
+                    },
+                    onDismiss = {
+                        viewModel.onDisagreeConsent()
+                    }
+                )
+            }
         }
     }
 }
@@ -641,6 +651,38 @@ private fun NumberInputDialog(
     }
 }
 
+@Composable
+private fun ConsentDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    cn.quickweather.messageforward.ui.theme.Dialog(
+        title = stringResource(id = R.string.warning_title_only_forward_priority_messages),
+        content = {
+                Text(
+                    text = stringResource(id = R.string.warning_content_only_forward_priority_messages),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+        },
+        actions = {
+            Row {
+                TextButton(
+                    onClick = onDismiss,
+                ) {
+                    Text(stringResource(id = R.string.warning_negative_button_only_forward_priority_messages))
+                }
+                TextButton(
+                    onClick = onConfirm,
+                ) {
+                    Text(stringResource(id = R.string.warning_positive_button_only_forward_priority_messages))
+                }
+            }
+        },
+        dismissDialog = onDismiss,
+    )
+}
+
 @Preview(showSystemUi = true)
 @Composable
 private fun SettingScreenPreview() {
@@ -689,6 +731,14 @@ private fun ForwardHistoryItemPreview() {
             "15952032659",
             "亲爱的居民朋友：2024年9月21日是我国第24个全民国防教育日，也是上海市第17个全市防空警报试鸣日。您可通过高德、百度地图搜索“民防工程”，查询身边的民防工程；打开微信小程序“民防在我身边”，了解浦东新区范围内的民防教育基地、应急避难场所和民防工程。【浦东新区国动办】",
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ConsentDialogPreview() {
+    MessageForwardTheme {
+        ConsentDialog({}, {})
     }
 }
 
