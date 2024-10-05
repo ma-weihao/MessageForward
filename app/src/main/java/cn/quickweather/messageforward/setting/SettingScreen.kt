@@ -659,11 +659,11 @@ private fun ConsentDialog(
     cn.quickweather.messageforward.ui.theme.Dialog(
         title = stringResource(id = R.string.warning_title_only_forward_priority_messages),
         content = {
-                Text(
-                    text = stringResource(id = R.string.warning_content_only_forward_priority_messages),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
+            Text(
+                text = stringResource(id = R.string.warning_content_only_forward_priority_messages),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp)
+            )
         },
         actions = {
             Row {
