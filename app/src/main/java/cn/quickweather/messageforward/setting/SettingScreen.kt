@@ -3,7 +3,6 @@
 package cn.quickweather.messageforward.setting
 
 import android.Manifest
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -99,7 +98,11 @@ fun SettingScreen(
         Box(modifier = Modifier.padding(top = padding.calculateTopPadding())) {
             val shownSettingData = viewModel.shownSettingDataFlow.collectAsStateWithLifecycle().value
             val smsPermissionState = rememberMultiplePermissionsState(
-                listOf(Manifest.permission.SEND_SMS, Manifest.permission.RECEIVE_SMS)
+                listOf(
+                    Manifest.permission.SEND_SMS,
+                    Manifest.permission.RECEIVE_SMS,
+                    Manifest.permission.READ_SMS,
+                )
             )
             LaunchedEffect(smsPermissionState.allPermissionsGranted) {
                 viewModel.refreshSmsPermissionState(smsPermissionState.allPermissionsGranted)
@@ -130,9 +133,6 @@ fun SettingScreen(
                 onFilterSwitchChanged = {
                     viewModel.changeOnlyForwardVerificationCode(it)
                 },
-                onMarkAsReadChanged = {
-                    viewModel.changeMarkAsRead(it)
-                },
                 onBatteryNotificationChanged = {
                     viewModel.changeBatteryNotification(it)
                 },
@@ -149,7 +149,6 @@ private fun SettingContent(
     onSwitchChanged: (Boolean) -> Unit,
     onPhoneNumberChanged: (String?) -> Unit,
     onFilterSwitchChanged: (Boolean) -> Unit,
-    onMarkAsReadChanged: (Boolean) -> Unit,
     onBatteryNotificationChanged: (Boolean) -> Unit,
     bottomPadding: Dp,
     modifier: Modifier = Modifier,
@@ -162,12 +161,10 @@ private fun SettingContent(
             .fillMaxSize()
             .padding(top = 16.dp),
     ) {
-        item {
-            AnimatedVisibility(visible = shownError != null) {
+        if (shownError != null) {
+            item {
                 ErrorCard(
-                    message = shownError?.errString?.let {
-                        stringResource(id = it)
-                    } ?: ""
+                    message = stringResource(id = shownError.errString)
                 )
             }
         }
@@ -179,17 +176,17 @@ private fun SettingContent(
             )
         }
 
-        item {
-            AnimatedVisibility(visible = settingData.enabled) {
+        if (settingData.enabled) {
+            item {
                 MainSettingItems(
                     settingData = settingData,
                     onPhoneNumberChanged = onPhoneNumberChanged,
                     onFilterSwitchChanged = onFilterSwitchChanged,
-                    onMarkAsReadChanged = onMarkAsReadChanged,
                     onBatteryNotificationChanged = onBatteryNotificationChanged,
                 )
             }
         }
+
 
         if (settingData.enabled) {
             forwardHistoryList(
@@ -250,7 +247,6 @@ private fun MainSettingItems(
     settingData: SettingData,
     onPhoneNumberChanged: (String?) -> Unit,
     onFilterSwitchChanged: (Boolean) -> Unit,
-    onMarkAsReadChanged: (Boolean) -> Unit,
     onBatteryNotificationChanged: (Boolean) -> Unit,
 ) {
     ContentCard(
@@ -266,11 +262,6 @@ private fun MainSettingItems(
             number = settingData.smsToNumber,
             onPhoneNumberChanged = onPhoneNumberChanged,
             modifier = Modifier.padding(vertical = 8.dp)
-        )
-        MarkAsReadContent(
-            checked = settingData.markAsRead,
-            onCheckedChange = onMarkAsReadChanged,
-            modifier = Modifier.padding(vertical = 8.dp),
         )
         BatteryNotificationContent(
             checked = settingData.sendBatteryNotification,
@@ -529,8 +520,8 @@ private fun ForwardHistoryItem(
     status: ForwardStatus,
     from: String,
     content: String,
-    withBottomDivider: Boolean = true,
     modifier: Modifier = Modifier,
+    withBottomDivider: Boolean = true,
 ) {
     val shownTime = remember(key1 = time) {
         val date = Date(time)

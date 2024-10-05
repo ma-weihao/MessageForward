@@ -16,7 +16,7 @@ class ForwardHistoryDataStore(context: Context) {
 
     private val Context.dataStore: DataStore<List<HistoryData>> by dataStore(
         fileName = "history",
-        serializer = DataSerializer(ListSerializer(HistoryData.serializer()), emptyList<HistoryData>()),
+        serializer = DataSerializer(ListSerializer(HistoryData.serializer()), emptyList()),
     )
 
     private val dataStore = context.dataStore

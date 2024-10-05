@@ -111,11 +111,11 @@ internal class SettingViewModel(
             settingDataStore.updateSetting(
                 settingDataFlow.first().copy(
                     sendBatteryNotification = enabled,
+                    lastBatteryNotificationTime = 0L,
                 )
             )
         }
     }
-
 }
 
 private const val TAG = "SettingViewModel"

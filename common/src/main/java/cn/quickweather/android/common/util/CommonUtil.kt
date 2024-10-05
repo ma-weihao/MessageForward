@@ -1,6 +1,7 @@
 package cn.quickweather.android.common.util
 
-import com.alibaba.fastjson.JSONObject
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import java.io.Closeable
 import java.lang.Exception
 import java.text.SimpleDateFormat
@@ -22,7 +23,7 @@ fun Closeable?.safeClose() {
 
 fun Any?.toJsonStr(): String {
     return try {
-        JSONObject.toJSONString(this)
+        Gson().toJson(this)
     } catch (ignore: Exception) {
         "PARSE EXCEPTION"
     }
@@ -65,8 +66,8 @@ fun <T> deserializeOrNull(text: String?, clazz: Class<T>): T? {
         return null
     }
     return try {
-        JSONObject.parseObject(text, clazz)
-    } catch (e: Exception) {
+        Gson().fromJson(text, clazz)
+    } catch (e: JsonSyntaxException) {
         logE("parseObjectOrNull", "parse object error", e)
         null
     }
