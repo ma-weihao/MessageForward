@@ -24,7 +24,7 @@ jobs:
         run: ./gradlew assembleRelease -PKEY_PASSWORD=${{ secrets.RELEASE_KEY_SECRET }} -PSTORE_PASSWORD=${{ secrets.RELEASE_KEYSTORE_SECRET }}
 
       - name: Upload APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
