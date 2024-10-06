@@ -9,6 +9,7 @@
 - Forward received sms to another phone number.
 - Battery Notification.
 - Forward History.
+- Only forward sms with priority. (AI powered)
 
 ## Planning Feature List
 - [ ] Clear History.
