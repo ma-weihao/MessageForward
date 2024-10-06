@@ -14,11 +14,20 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            keyAlias = "Msg"
+            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+            storeFile = file("../secret/msg.keystore")
+            storePassword = project.findProperty("STORE_PASSWORD") as String? ?: ""
         }
     }
 
@@ -29,28 +38,43 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
     lint {
         disable.add("MissingTranslation")
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val outPutImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            val outputFileName = "app-${outPutImpl.name}-${outPutImpl.versionCode}.apk"
+            outPutImpl.outputFileName = outputFileName
+        }
     }
 }
 
@@ -80,9 +104,9 @@ dependencies {
     // Koin for JUnit 5
     testImplementation("io.insert-koin:koin-test-junit5:$koinAndroidVersion")
     // Java Compatibility
-    implementation("io.insert-koin:koin-android-compat:$koinAndroidVersion")
+//    implementation("io.insert-koin:koin-android-compat:$koinAndroidVersion")
     // Jetpack WorkManager
-    implementation("io.insert-koin:koin-androidx-workmanager:$koinAndroidVersion")
+//    implementation("io.insert-koin:koin-androidx-workmanager:$koinAndroidVersion")
     // Navigation Graph
     implementation("io.insert-koin:koin-androidx-navigation:$koinAndroidVersion")
     implementation("io.insert-koin:koin-androidx-compose:$koinAndroidVersion")
